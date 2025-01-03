@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Chromium Zip Folder Drag & Drop Bug Reproduction</title>
+    <style>
+      #drop-zone {
+        width: 400px;
+        height: 200px;
+        border: 2px dashed #999;
+        border-radius: 10px;
+        text-align: center;
+        line-height: 200px;
+        margin: 50px auto;
+        color: #333;
+        transition: border-color 0.3s;
+      }
+      #drop-zone.dragover {
+        border-color: #00f;
+        color: #00f;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Chromium Zip Folder Drag & Drop Bug Reproduction</h1>
+    <p>
+      Drag and drop a file from inside a Windows zip folder onto this area.<br />
+      In Chrome, the file is recognized as 0 bytes, causing a failed upload or
+      no usable file data.<br /><br />
+      <a href="https://issues.chromium.org/issues/385429439" target="_blank">
+        Files dragged from a zip folder on Windows result in 0-byte
+        DataTransferItem [385429439] - Chromium
+      </a>
+    </p>
+
+    <div id="drop-zone">Drop files here</div>
+
+    <script>
+      const dropZone = document.getElementById("drop-zone");
+
+      // Highlight the drop zone when a file is dragged over it
+      dropZone.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        dropZone.classList.add("dragover");
+      });
+
+      // Remove highlight when dragging leaves the drop zone
+      dropZone.addEventListener("dragleave", () => {
+        dropZone.classList.remove("dragover");
+      });
+
+      // Handle dropped files
+      dropZone.addEventListener("drop", (event) => {
+        event.preventDefault();
+        dropZone.classList.remove("dragover");
+
+        console.log("--- Files dropped ---");
+        for (const item of event.dataTransfer.items) {
+          // Log the DataTransferItem
+          console.log("[DataTransferItem]", item);
+
+          // Retrieve the File object
+          const file = item.getAsFile();
+          console.log("[File]", file);
+
+          if (file && file.size === 0) {
+            // Alert if a 0-byte file is detected
+            alert(
+              "A 0-byte file was detected. This often happens when dragging a file from inside a zip folder."
+            );
+          }
+        }
+        console.log("--- End of drop event ---");
+      });
+    </script>
+  </body>
+</html>
